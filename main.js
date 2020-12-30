@@ -64,12 +64,15 @@ document.addEventListener('keydown', event => {
         event.preventDefault();
         let blockTemp = moves[event.keyCode](gameWindow.block);
 
-        if (event.keyCode === KEYS.SPACE) {
-            while (gameWindow.check(blockTemp)) {
-                blockTemp = moves[KEYS.SPACE](blockTemp);
-            }
-        }
-        else if (gameWindow.check(blockTemp)) {
+        if (gameWindow.check(blockTemp)) {
+            if (event.keyCode == KEYS.SPACE) {
+                while (1) {
+                    if (!gameWindow.check(moves[KEYS.SPACE](blockTemp))) {
+                        break;
+                    }
+                    blockTemp = moves[KEYS.SPACE](blockTemp);
+                }
+            }          
             gameWindow.block.move(blockTemp);
             canvasContext.clearRect(
                 0, 0, 
