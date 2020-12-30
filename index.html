@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <title>TETRIS</title>
+        <link rel="stylesheet" href="css/style.css">
+        <meta charset="utf-8">
+    </head>
+    <body>
+        <!--<script src="main.js"></script>-->
+        <div class="wrapper">
+            <div class="game">
+                <div class="game-info-left">
+                    <div class="game-info_item">
+                        <canvas id="game-current_block" class="game-info_item"></canvas>
+                    </div>
+                    <div class="game-info_item">
+                        <canvas id="game-next_block" class="game-info_item"></canvas>
+                    </div>
+                </div>
+                <canvas id="game-window"></canvas>
+                <div class="game-info-right">
+                    <div class="game-info_header">
+                        <div id="game-name" class="game-info_item">Tetris</div>
+                        <div id="game-record" class="game-info_item">Record <span>0</span></div>
+                        <div id="game-lines" class="game-info_item">Lines <span>0</span></div>
+                    </div>
+                    <div class="game-info_footer">
+                        <a href="#" class="game-button">play</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="gamewindow.js"></script>
+        <script src="blocks.js"></script>
+        <script src="main.js"></script>
+    </body>
+</html>
