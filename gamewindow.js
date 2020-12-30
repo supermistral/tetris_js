@@ -62,12 +62,12 @@ class GameWindow {
             this.block.move(blockTemp);
         }
         else {
-            this.updateGrid();
-            this.updateLines();
-
             if (this.block.y == 0) {
                 return false;
             }
+            
+            this.updateGrid();
+            this.updateLines();
 
             this.block = this.blockNext;
             this.block.context = canvasContext;
