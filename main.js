@@ -1,121 +1,118 @@
-'use strict';
-
-const BLOCK_SIZE = 20;
-const AREA_WIDTH = 10;
-const AREA_HEIGHT = 20;
-const canvas = document.getElementById('game-window');
-const canvasCur = document.getElementById('game-current_block');
-const canvasNext = document.getElementById('game-next_block');
-const canvasContext = canvas.getContext('2d');
-const canvasCurContext = canvasCur.getContext('2d');
-const canvasNextContext = canvasNext.getContext('2d');
-
-const KEYS = {
-    UP: 38,
-    DOWN: 40,
-    LEFT: 37,
-    RIGHT: 39,
-    ESC: 27,
-    SPACE: 32,
-};
-const COLORS = [
-    '',
-    'blue',
-    'red',
-    'orange',
-    'yellow',
-    'purple',
-    'cyan',
-    'green',
-];
-const FORMS = [
-    [],
-    [[1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-    [[2, 0, 0], [2, 2, 2], [0, 0, 0]],
-    [[0, 0, 3], [3, 3, 3], [0, 0, 0]],
-    [[4, 4], [4, 4]],
-    [[0, 5, 5], [5, 5, 0], [0, 0, 0]],
-    [[0, 6, 0], [6, 6, 6], [0, 0, 0]],
-    [[7, 7, 0], [0, 7, 7], [0, 0, 0]],
-];
-
-let moves = {
-    [KEYS.LEFT]: blockTemp => ({ ...blockTemp, x: blockTemp.x - 1 }),
-    [KEYS.RIGHT]: blockTemp => ({ ...blockTemp, x: blockTemp.x + 1 }),
-    [KEYS.DOWN]: blockTemp => ({ ...blockTemp, y: blockTemp.y + 1 }),
-    [KEYS.SPACE]: blockTemp => ({ ...blockTemp, y: blockTemp.y + 1 }),
-    [KEYS.UP]: blockTemp => blockTemp.rotate(),
-};
-
-let scores = {
-    record: 0,
-    lines: 0,
-};
-
-canvasInit(canvasContext, AREA_WIDTH, AREA_HEIGHT);
-canvasInit(canvasCurContext, 4, 4);
-canvasInit(canvasNextContext, 4, 4);
-
-let gameWindow = new GameWindow();
-let timer;
-
-document.addEventListener('keydown', event => {
-    if (moves[event.keyCode]) {
-        event.preventDefault();
-        let blockTemp = moves[event.keyCode](gameWindow.block);
-
-        if (gameWindow.check(blockTemp)) {
-            if (event.keyCode == KEYS.SPACE) {
-                while (1) {
-                    if (!gameWindow.check(moves[KEYS.SPACE](blockTemp))) {
-                        break;
-                    }
-                    blockTemp = moves[KEYS.SPACE](blockTemp);
-                }
-            }          
-            gameWindow.block.move(blockTemp);
-            canvasContext.clearRect(
-                0, 0, 
-                canvasContext.canvas.width, canvasContext.canvas.height
-            );
-            gameWindow.draw();
-        }
-    }
-})
-
-document.querySelector(".game-button").addEventListener(
-    'click', () => main()
-);
-
-function main() {
-    reset();
-    clearInterval(timer);
-    timer = setInterval(() => play(), 50);
-    gameWindow.draw();
-}
-
-function canvasInit(context, w, h) {
-    context.canvas.width = w * BLOCK_SIZE;
-    context.canvas.height = h * BLOCK_SIZE;
-    context.scale(BLOCK_SIZE, BLOCK_SIZE);
-}
-
-function reset() {
-    scores.lines = 0;
-    gameWindow.reset();
-}
-
-function play() {
-    if (gameWindow.move()) {
+class GameWindow {
+    reset() {
         canvasContext.clearRect(
             0, 0,
             canvasContext.canvas.width, canvasContext.canvas.height
         );
-        gameWindow.draw();
-        document.getElementById('game-record').getElementsByTagName('span').innerHTML = scores.record;
-        document.getElementById('game-lines').getElementsByTagName('span').innerHTML = scores.lines;
+        this.grid = this.getStartArea();
+
+        let block = new Block(canvasContext);
+        this.block = block;
+        this.setNewBlock();
     }
-    else {
-        clearInterval(timer);
+
+    getStartArea() {
+        return Array.from(
+            { length: AREA_HEIGHT },
+            () => Array(AREA_WIDTH).fill(0)
+        );
+    }
+
+    check(blockTemp) {
+        return blockTemp.form.every((width, y) => {
+            return width.every((num, x) => {
+                let newX = blockTemp.x + x, newY = blockTemp.y + y;
+                return (!num || this.inGame(newX, newY));
+            });
+        });
+    }
+
+    inGame(x, y) {
+        return (
+            x >= 0 && x < AREA_WIDTH && y <= AREA_HEIGHT &&
+            this.grid[y] && this.grid[y][x] === 0  
+        );
+    }
+
+    draw() {
+        this.block.draw();
+        this.grid.forEach((width, y) => {
+            width.forEach((num, x) => {
+                if (num) {
+                   canvasContext.fillStyle = COLORS[num];
+                   canvasContext.fillRect(x, y, 1, 1);
+                }
+            });
+        });
+    }
+
+    updateGrid() {
+        this.block.form.forEach((width, y) => {
+            width.forEach((num, x) => {
+                if (num) {
+                    this.grid[y + this.block.y][x + this.block.x] = num;
+                }
+            });
+        });
+    }
+
+    move() {
+        let blockTemp = moves[KEYS.DOWN](this.block);
+        if (this.check(blockTemp)) {
+            this.block.move(blockTemp);
+        }
+        else {
+            if (this.block.y == 0) {
+                return false;
+            }
+            
+            this.updateGrid();
+            this.updateLines();
+
+            this.block = this.blockNext;
+            this.block.context = canvasContext;
+            this.block.setStartPos();
+            this.setNewBlock();
+        }
+        return true;
+    }
+
+    updateLines() {
+        let lines = 0;
+        this.grid.forEach((width, y) => {
+            if (width.every(num => num != 0)) {
+                ++lines;
+                this.grid.splice(y, 1);
+                this.grid.splice.unshift(Array(AREA_WIDTH).fill(0));
+            }
+        });
+
+        if (lines > 0) {
+            scores.lines += lines;
+        }
+        if (scores.record < scores.lines) {
+            scores.record = scores.lines;
+        }
+    }
+
+    setNewBlock() {
+        this.blockNext = new Block(canvasNextContext);
+        this.setBlock(canvasNextContext, this.blockNext);
+
+        this.setCurrentBlock();
+    }
+
+    setCurrentBlock() {
+        this.blockCurrent = this.block.getCopyBlock(canvasCurContext);
+        this.setBlock(canvasCurContext, this.blockCurrent);
+    }
+
+    setBlock(context, block) {
+        block.x = 0;
+        context.clearRect(
+            0, 0,
+            context.canvas.width, context.canvas.height
+        );
+        block.draw();
     }
 }
