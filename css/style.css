@@ -1,0 +1,77 @@
+.wrapper {
+    margin: 0 auto;
+    width: 75%;
+    font-size: 30px;
+}
+
+.game {
+    display: flex;
+    justify-content: center;
+    height: 400px;
+    margin-top: 100px;
+}
+
+.game-info-left, .game-info-right, #game-window {
+    flex-basis: 200px;
+}
+
+#game-window {
+    border: 2px solid black;
+}
+
+.game-info-left, .game-info-right {
+    display: flex;
+    flex-direction: column;
+    padding: 0 1em;
+}
+
+.game-info-left {
+    justify-content: flex-start;
+    align-items: flex-end;
+}
+
+.game-info-right {
+    justify-content: space-between;
+}
+
+.game-info_header {
+    flex-grow: 1;
+}
+
+.game-info_footer {
+    flex-grow: 0;
+    padding: 0.3em 0;
+}
+
+.game-info_item {
+    margin-bottom: 0.5em;
+}
+
+#game-name {
+    font-size: 32px;
+    padding-top: 0;
+}
+
+.game-info-left div {
+    height: 100px;
+    width: 100px;
+    border: 2px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-info-left canvas {
+    height: 80px;
+    width: 80px;
+    margin: 0;
+}
+
+.game-button {
+    text-decoration: none;
+    text-transform: uppercase;
+    color: black;
+    background-color: rgb(236, 151, 89);
+    border: 2px solid black;
+    padding: 0.3em 1em;
+}
